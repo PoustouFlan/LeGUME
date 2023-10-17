@@ -64,7 +64,7 @@ class CreateChallengeModal(ui.Modal, title = "Sujet du cours"):
         except ValueError:
             return
 
-        existing = await Challenge.filter(name = self.name.value).get()
+        existing = await Challenge.filter(name = self.name.value).first()
         if existing is not None:
             await interaction.response.send_message(
                 "Un challenge du même nom existe déjà"
