@@ -24,6 +24,7 @@ initial_extensions = [
     "cogs.user-info",
     # "cogs.announce",
     "cogs.create-challenge",
+    "cogs.create-course",
     "cogs.delete",
     "cogs.scoreboard",
     "cogs.challenges",
