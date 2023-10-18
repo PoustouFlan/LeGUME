@@ -33,7 +33,7 @@ class CreateCourseView(ui.View):
         await course.challenges.add(*select.challenges)
 
         await interaction.response.send_message(
-            "Cours créé avec succès !"
+           "Cours créé avec succès !"
         )
 
     def __init__(self, challenges, name) -> None:

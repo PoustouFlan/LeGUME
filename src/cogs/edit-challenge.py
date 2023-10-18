@@ -9,7 +9,7 @@ log = logging.getLogger("LeGuMe")
 
 from data.models import *
 
-class CreateChallengeModal(ui.Modal, title = "Création du Challenge"):
+class EditChallengeModal(ui.Modal, title = "Édition du Challenge"):
     name = ui.TextInput(
         label = "Nom",
         style = discord.TextStyle.short,
@@ -51,6 +51,15 @@ class CreateChallengeModal(ui.Modal, title = "Création du Challenge"):
         max_length = 255,
     )
 
+    def __init__(self, challenge):
+        super().__init__()
+        self.name.placeholder = challenge.name
+        self.category.placeholder = challenge.category.name
+        self.points.placeholder = str(challenge.points)
+        self.description.placeholder = challenge.desc
+        self.flag.placeholder = challenge.flag
+        self.challenge = challenge
+
     async def on_submit(self, interaction):
         try:
             points = int(self.points.value)
@@ -65,35 +74,41 @@ class CreateChallengeModal(ui.Modal, title = "Création du Challenge"):
             return
 
         existing = await Challenge.filter(name = self.name.value).first()
-        if existing is not None:
+        if existing is not None and existing != self.challenge:
             await interaction.response.send_message(
-                "Un challenge du même nom existe déjà"
+                "Un autre challenge du même nom existe déjà"
             )
             return
 
-        challenge = await Challenge.create(
-            name = self.name.value,
-            points = points,
-            category = category,
-            desc = self.description.value,
-            flag = self.flag.value,
-        )
+        self.challenge.name = self.name.value
+        self.challenge.points = points
+        self.challenge.category = category
+        self.challenge.desc = self.description.value
+        self.challenge.flag = self.flag.value
+        await self.challenge.save()
+
         await interaction.response.send_message(
-            "Le challenge a été créé avec succès"
+            "Le challenge a été édité avec succès"
         )
 
-class Create(commands.Cog):
+class Edit(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
     @app_commands.command(
-        name = "create",
-        description = "créée un nouveau challenge"
+        name = "edit",
+        description = "Édite un challenge existant"
     )
-    async def create(self, interaction):
+    async def edit(self, interaction, name: str):
+        challenge = await Challenge.filter(name = name).prefetch_related('category').first()
+        if challenge is None:
+            await interaction.response.send_message(
+                f"Le challenge {name} n'existe pas"
+            )
+            return
 
-        modal = CreateChallengeModal()
+        modal = EditChallengeModal(challenge)
         await interaction.response.send_modal(modal)
 
 async def setup(bot):
-    await bot.add_cog(Create(bot), guilds = [guild_object])
+    await bot.add_cog(Edit(bot), guilds = [guild_object])

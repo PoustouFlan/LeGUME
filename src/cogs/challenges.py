@@ -17,8 +17,12 @@ class ActiveChallenges(commands.Cog):
         description = "liste les challenges actifs"
     )
     async def challenges(self, interaction) -> None:
-        await interaction.response.pong()
         courses = await Course.all()
+        if len(courses) == 0:
+            await interaction.response.send_message("Pas de cours actif!")
+            return
+
+        await interaction.response.pong()
         for course in courses:
             await self.display_course(course)
 
